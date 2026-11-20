@@ -120,7 +120,7 @@ async def test_gemini_fallback_model_404_resilience() -> None:
                 }
             ]
         },
-        request=httpx.Request("POST", "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent"),
+        request=httpx.Request("POST", "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent"),
     )
 
     with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
@@ -129,3 +129,38 @@ async def test_gemini_fallback_model_404_resilience() -> None:
 
         assert answer == "Recovered via Gemini candidate model."
         assert mock_post.call_count == 3
+
+
+@pytest.mark.asyncio
+async def test_gemini_fallback_model_429_cascading() -> None:
+    """Verify Gemini fallback cascades to alternate model when first model returns 429 rate limit."""
+    client = OpenRouterClient(
+        api_key="",
+        gemini_api_key="mock-gemini-key",
+        gemini_chat_model="gemini-3-flash-preview",
+    )
+    resp_gemini_429 = httpx.Response(
+        status_code=429,
+        json={"error": {"message": "Resource has been exhausted (e.g. check quota)."}},
+        request=httpx.Request("POST", "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent"),
+    )
+    resp_gemini_lite_200 = httpx.Response(
+        status_code=200,
+        json={
+            "candidates": [
+                {
+                    "content": {
+                        "parts": [{"text": "Response from gemini-3.1-flash-lite-preview."}]
+                    }
+                }
+            ]
+        },
+        request=httpx.Request("POST", "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent"),
+    )
+
+    with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+        mock_post.side_effect = [resp_gemini_429, resp_gemini_lite_200]
+        answer = await client.generate_response("System", "Find properties")
+
+        assert answer == "Response from gemini-3.1-flash-lite-preview."
+        assert mock_post.call_count == 2

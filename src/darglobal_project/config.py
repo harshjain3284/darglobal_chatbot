@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
     # AI & Retrieval
     gemini_api_key: str = ""
-    gemini_chat_model: str = "gemini-2.5-flash"
+    gemini_chat_model: str = "gemini-3.1-flash-lite-preview"
     openrouter_api_key: str = ""
     openrouter_model: str = "openrouter/free"
 

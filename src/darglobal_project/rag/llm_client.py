@@ -163,10 +163,12 @@ class OpenRouterClient:
             client = httpx.AsyncClient(timeout=self.timeout)
             should_close = True
 
-        # Models to try: primary configured model (e.g. gemini-2.5-flash), with resilient backup (gemini-3-flash-preview)
-        candidate_models = [self.gemini_chat_model]
-        if self.gemini_chat_model != "gemini-3-flash-preview":
-            candidate_models.append("gemini-3-flash-preview")
+        # Multi-model resilient fallback pool: start with configured model, then cascade across independent model families
+        candidates = [self.gemini_chat_model, "gemini-3.1-flash-lite-preview", "gemini-3-flash-preview", "gemini-flash-latest"]
+        candidate_models = []
+        for m in candidates:
+            if m and m not in candidate_models:
+                candidate_models.append(m)
 
         try:
             last_err = None
@@ -176,19 +178,20 @@ class OpenRouterClient:
                     resp = await client.post(url, headers=headers, json=payload)
                     if resp.status_code == 200:
                         data = resp.json()
-                        candidates = data.get("candidates", [])
-                        if candidates and "content" in candidates[0]:
-                            parts = candidates[0]["content"].get("parts", [])
+                        candidates_data = data.get("candidates", [])
+                        if candidates_data and "content" in candidates_data[0]:
+                            parts = candidates_data[0]["content"].get("parts", [])
                             if parts and "text" in parts[0]:
                                 logger.info(f"[Gemini Fallback] Successfully generated response using {model_name}.")
                                 return parts[0]["text"].strip()
                         raise ValueError("Empty or malformed candidate in Gemini response")
 
-                    if resp.status_code == 404:
+                    if resp.status_code in (404, 429, 503):
                         logger.warning(
-                            f"[Gemini Fallback] Model '{model_name}' returned 404. Attempting alternative Gemini model."
+                            f"[Gemini Fallback] Model '{model_name}' returned HTTP {resp.status_code}. "
+                            "Cascading to alternative Gemini model."
                         )
-                        last_err = RuntimeError(f"Gemini model {model_name} not available (404)")
+                        last_err = RuntimeError(f"Gemini model {model_name} HTTP {resp.status_code}")
                         continue
 
                     resp.raise_for_status()
