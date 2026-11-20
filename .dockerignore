@@ -1,0 +1,28 @@
+# Python caches & virtual environments
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Git metadata
+.git/
+.gitignore
+
+# Environment files and credentials (CRITICAL: NEVER BUNDLE .env)
+.env
+.env.*
+!.env.example
+*.local
+
+# Raw crawl artifacts and inventory (offline only)
+data/raw/
+data/inventory/
+
+# Test suites and offline automation scripts
+tests/
+scripts/
+
+# Documentation
+AGENTS.md
+PROJECT_CONTEXT.md

@@ -1,0 +1,23 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.pytest_cache/
+*.log
+
+# Virtual environments
+.venv/
+
+# Secrets & Local Environment
+.env
+.env.*
+!.env.example
+*.local
+
+# Raw crawl artifacts & temporary inventories (offline only)
+data/raw/
+data/inventory/
+

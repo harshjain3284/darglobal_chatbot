@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DarGlobal & Wasalt Real Estate Assistant</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo-icon">🏛️</div>
+        <div>
+          <h1>DarGlobal &amp; Wasalt Real Estate AI</h1>
+          <p class="subtitle">Grounded property search across DarGlobal projects and Wasalt verified listings</p>
+        </div>
+      </div>
+      <div class="status-badge" id="system-status">
+        <span class="status-dot"></span>
+        <span id="status-text">Connected</span>
+      </div>
+    </header>
+
+    <!-- Chat Messages Box -->
+    <main class="chat-main" id="chat-container">
+      <div class="message assistant-message">
+        <div class="avatar">🤖</div>
+        <div class="message-content">
+          <p>Hello! I am your AI Real Estate Assistant grounded strictly in verified data collected from <strong>Wasalt</strong> and <strong>DarGlobal</strong>.</p>
+          <p>I can help you explore available villas, apartments, lands, and luxury development projects with verified prices, locations, and source links.</p>
+          <div class="sample-queries">
+            <span class="sample-title">Try asking:</span>
+            <button class="chip" data-query="Show me luxury villas in Riyadh with prices">Villas in Riyadh</button>
+            <button class="chip" data-query="What DarGlobal Trump projects are available?">DarGlobal Trump Projects</button>
+            <button class="chip" data-query="What properties are available in Sedra or An-Narjis?">Sedra / An-Narjis listings</button>
+            <button class="chip" data-query="Are there any apartments for sale in Jeddah?">Apartments in Jeddah</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Typing Indicator -->
+    <div class="typing-indicator" id="typing-indicator" style="display: none;">
+      <div class="avatar">🤖</div>
+      <div class="dots">
+        <span></span><span></span><span></span>
+      </div>
+      <span class="typing-label">Searching property collection &amp; synthesizing answer...</span>
+    </div>
+
+    <!-- Error Banner -->
+    <div class="error-banner" id="error-banner" style="display: none;"></div>
+
+    <!-- Input Form -->
+    <footer class="input-container">
+      <form id="chat-form" class="chat-form">
+        <input 
+          type="text" 
+          id="user-input" 
+          placeholder="Ask about properties, prices, locations, or DarGlobal projects..." 
+          autocomplete="off" 
+          required 
+        />
+        <button type="submit" id="send-btn" aria-label="Send message">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </form>
+      <div class="disclaimer">
+        <span>Grounded strictly in collected evidence. Unverified attributes are never fabricated.</span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="vendor/marked.min.js"></script>
+  <script src="vendor/purify.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
