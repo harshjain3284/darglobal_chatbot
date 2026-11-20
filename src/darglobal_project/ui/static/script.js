@@ -78,9 +78,12 @@ document.addEventListener("DOMContentLoaded", () => {
       : "";
 
   // Check backend health and update status badge
+  let isCheckingHealth = false;
   async function checkHealth() {
+    if (isCheckingHealth) return;
+    isCheckingHealth = true;
     try {
-      const res = await fetch(`${API_BASE}/health`);
+      const res = await fetch(`${API_BASE}/health`, { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         if (systemStatus) systemStatus.className = "status-badge status-live";
@@ -92,12 +95,16 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch {
       if (systemStatus) systemStatus.className = "status-badge status-offline";
       statusText.textContent = "Offline";
+      // Auto-retry sooner after failure (handles server wake-up/cold-starts)
+      setTimeout(checkHealth, 5000);
+    } finally {
+      isCheckingHealth = false;
     }
   }
 
-  // Initial check plus periodic background health monitoring every 30s
+  // Initial check plus periodic background health monitoring every 20s
   checkHealth();
-  setInterval(checkHealth, 30000);
+  setInterval(checkHealth, 20000);
 
   // Scroll to bottom
   function scrollToBottom() {
