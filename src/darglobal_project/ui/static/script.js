@@ -64,23 +64,40 @@ document.addEventListener("DOMContentLoaded", () => {
   const sendBtn = document.getElementById("send-btn");
   const typingIndicator = document.getElementById("typing-indicator");
   const errorBanner = document.getElementById("error-banner");
+  const systemStatus = document.getElementById("system-status");
   const statusText = document.getElementById("status-text");
 
-  // Check backend health on initial load
+  // Determine API base: empty relative string for same-origin (production / port 8000),
+  // with intelligent localhost:8000 fallback for file:// or local live servers.
+  const API_BASE =
+    (window.location.protocol === "http:" || window.location.protocol === "https:") &&
+    (window.location.port === "8000" || !["localhost", "127.0.0.1"].includes(window.location.hostname))
+      ? ""
+      : window.location.protocol === "file:" || ["localhost", "127.0.0.1"].includes(window.location.hostname)
+      ? "http://localhost:8000"
+      : "";
+
+  // Check backend health and update status badge
   async function checkHealth() {
     try {
-      const res = await fetch("/health");
+      const res = await fetch(`${API_BASE}/health`);
       if (res.ok) {
         const data = await res.json();
+        if (systemStatus) systemStatus.className = "status-badge status-live";
         statusText.textContent = `Live (${data.records_indexed} properties indexed)`;
       } else {
+        if (systemStatus) systemStatus.className = "status-badge status-degraded";
         statusText.textContent = "Service degraded";
       }
     } catch {
+      if (systemStatus) systemStatus.className = "status-badge status-offline";
       statusText.textContent = "Offline";
     }
   }
+
+  // Initial check plus periodic background health monitoring every 30s
   checkHealth();
+  setInterval(checkHealth, 30000);
 
   // Scroll to bottom
   function scrollToBottom() {
@@ -211,7 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
     scrollToBottom();
 
     try {
-      const response = await fetch("/api/chat", {
+      const response = await fetch(`${API_BASE}/api/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -226,6 +243,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const data = await response.json();
       appendAssistantMessage(data.answer, data.sources || []);
+      if (statusText && statusText.textContent === "Offline") {
+        checkHealth();
+      }
     } catch (err) {
       console.error("Chat error:", err);
       showError(`Unable to process request: ${err.message}`);
